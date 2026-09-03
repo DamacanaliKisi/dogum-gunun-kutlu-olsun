@@ -9,6 +9,9 @@ const noBtn = document.getElementById('no-btn');
 const yesBtn = document.getElementById('yes-btn');
 const music1 = document.getElementById('music1');
 const music2 = document.getElementById('music2');
+const loadingScreen = document.getElementById('loading-screen');
+const progressBar = document.getElementById('progress-bar');
+const progressText = document.getElementById('progress-text');
 
 let isCelebrating = false;
 let noClickCount = 0;
@@ -302,17 +305,63 @@ function showCelebration() {
     });
 }
 
-window.addEventListener('load', () => {
-    createShapes();
-    if (!document.fullscreenElement) {
-        showFullscreenBtn();
-    } else {
-        startExperience();
+async function loadResource(url) {
+    const response = await fetch(url);
+    if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+    const contentLength = +response.headers.get('Content-Length');
+    const reader = response.body.getReader();
+    const chunks = [];
+    let receivedLength = 0;
+
+    while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        chunks.push(value);
+        receivedLength += value.length;
+        if (contentLength > 0) {
+            const percent = Math.round((receivedLength / contentLength) * 100);
+            updateProgress(percent);
+        }
     }
+
+    const blob = new Blob(chunks, { type: response.headers.get('Content-Type') || 'audio/mpeg' });
+    return URL.createObjectURL(blob);
+}
+
+function updateProgress(percent) {
+    progressBar.style.width = percent + '%';
+    progressText.textContent = '%' + percent;
+}
+
+async function preloadAll() {
+    try {
+        const [music1Url, music2Url] = await Promise.all([
+            loadResource('./files/music/1.mp3'),
+            loadResource('./files/music/2.mp3')
+        ]);
+        music1.src = music1Url;
+        music2.src = music2Url;
+        loadingScreen.classList.add('hidden');
+        createShapes();
+        if (!document.fullscreenElement) {
+            showFullscreenBtn();
+        } else {
+            startExperience();
+        }
+    } catch (err) {
+        console.error('Yükleme hatası:', err);
+        loadingScreen.classList.add('hidden');
+        createShapes();
+        showFullscreenBtn();
+    }
+}
+
+window.addEventListener('load', () => {
+    preloadAll();
 });
 
 document.addEventListener('click', () => {
-    if (!document.fullscreenElement && !isCelebrating) {
+    if (!document.fullscreenElement && !isCelebrating && loadingScreen.classList.contains('hidden')) {
         document.documentElement.requestFullscreen().catch(() => {});
         fullscreenBtn.classList.remove('visible');
         startExperience();
