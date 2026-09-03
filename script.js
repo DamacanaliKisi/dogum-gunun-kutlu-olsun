@@ -12,6 +12,7 @@ const music2 = document.getElementById('music2');
 const loadingScreen = document.getElementById('loading-screen');
 const progressBar = document.getElementById('progress-bar');
 const progressText = document.getElementById('progress-text');
+const loadingDots = document.getElementById('loading-dots');
 
 let isCelebrating = false;
 let noClickCount = 0;
@@ -332,57 +333,61 @@ async function loadResource(url, onProgress) {
     return URL.createObjectURL(blob);
 }
 
-async function preloadAll() {
-    let totalProgress = 0;
-    const totalFiles = 2;
-    let completedFiles = 0;
+function animateLoadingDots() {
+    let dotCount = 3;
+    setInterval(() => {
+        dotCount = (dotCount % 3) + 1;
+        loadingDots.textContent = '.'.repeat(dotCount);
+    }, 500);
+}
 
-    const updateGlobalProgress = (filePercent) => {
-        const overall = Math.round((totalProgress + filePercent) / totalFiles);
+async function preloadAll() {
+    animateLoadingDots();
+
+    let globalProgress = 0;
+    const totalFiles = 2;
+    const updateProgress = (filePercent) => {
+        const overall = Math.round((globalProgress + filePercent) / totalFiles);
         progressBar.style.width = overall + '%';
         progressText.textContent = '%' + overall;
     };
 
     try {
         const url1 = await loadResource('./files/music/1.mp3', (percent) => {
-            updateGlobalProgress(percent);
+            updateProgress(percent);
         });
         music1.src = url1;
         music1Loaded = true;
-        completedFiles++;
-        totalProgress += 100;
+        globalProgress += 100;
     } catch (e) {
         console.warn('1.mp3 yüklenemedi, fallback kullanılıyor.', e);
         music1.src = './files/music/1.mp3';
         music1Loaded = true;
-        completedFiles++;
-        totalProgress += 100;
+        globalProgress += 100;
     }
+    updateProgress(0);
 
     try {
         const url2 = await loadResource('./files/music/2.mp3', (percent) => {
-            updateGlobalProgress(percent);
+            updateProgress(percent);
         });
         music2.src = url2;
         music2Loaded = true;
-        completedFiles++;
-        totalProgress += 100;
+        globalProgress += 100;
     } catch (e) {
         console.warn('2.mp3 yüklenemedi, fallback kullanılıyor.', e);
         music2.src = './files/music/2.mp3';
         music2Loaded = true;
-        completedFiles++;
-        totalProgress += 100;
+        globalProgress += 100;
     }
+    updateProgress(0);
 
-    if (completedFiles === totalFiles) {
-        loadingScreen.classList.add('hidden');
-        createShapes();
-        if (!document.fullscreenElement) {
-            showFullscreenBtn();
-        } else {
-            startExperience();
-        }
+    loadingScreen.classList.add('hidden');
+    createShapes();
+    if (!document.fullscreenElement) {
+        showFullscreenBtn();
+    } else {
+        startExperience();
     }
 }
 
