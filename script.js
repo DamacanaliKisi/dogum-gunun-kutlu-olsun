@@ -150,7 +150,7 @@ function hideIntro() {
     setTimeout(() => {
         intro.classList.add('hidden');
         showQuestion();
-    }, 600);
+    }, 1000);
 }
 
 function showQuestion() {
@@ -234,7 +234,7 @@ noBtn.addEventListener('click', () => {
     showFloatingText();
 });
 
-function showBlurMessage(message, duration = 500) {
+function showBlurMessage(message, duration = 1000) {
     return new Promise(resolve => {
         const overlay = document.createElement('div');
         overlay.classList.add('blur-overlay');
@@ -274,18 +274,18 @@ yesBtn.addEventListener('click', async () => {
 
     setTimeout(async () => {
         questionScreen.classList.add('hidden');
-        await showBlurMessage('harika!', 500);
-        await showBlurMessage('tanışalı daha birkaç gün oldu..', 800);
-        await showBlurMessage('senin hakkında daha çok şey bilseydim daha fazla sorular sorabilirdim.', 900);
-        await showBlurMessage('aklıma başka birşey gelmedi :/', 600);
-        await showBlurMessage('neyse, konuyu uzatmayalım :P', 700);
+        await showBlurMessage('harika!', 1000);
+        await showBlurMessage('tanışalı daha birkaç gün oldu..', 1000);
+        await showBlurMessage('senin hakkında daha çok şey bilseydim daha fazla sorular sorabilirdim.', 1000);
+        await showBlurMessage('aklıma başka birşey gelmedi :/', 1000);
+        await showBlurMessage('neyse, konuyu uzatmayalım :P', 1000);
         stopMusic1();
         setTimeout(() => {
             playMusic2();
             toggleConfettiShapes();
-            setTimeout(showCelebration, 500);
+            setTimeout(showCelebration, 1000);
         }, 1000);
-    }, 600);
+    }, 1000);
 });
 
 function showCelebration() {
