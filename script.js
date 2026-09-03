@@ -15,6 +15,8 @@ const progressText = document.getElementById('progress-text');
 
 let isCelebrating = false;
 let noClickCount = 0;
+let music1Loaded = false;
+let music2Loaded = false;
 
 const noMessages = ['ı-ıh!', 'hmph!', 'grrr!', 'hayır!', 'olmaz!', 'boşuna!'];
 const popupMessages = [
@@ -73,18 +75,21 @@ function fadeAudio(audio, targetVolume, duration, callback) {
 }
 
 function playMusic1() {
+    if (!music1Loaded) return;
     music1.volume = 0;
     music1.play().catch(() => {});
     fadeAudio(music1, 0.6, 1500);
 }
 
 function playMusic2() {
+    if (!music2Loaded) return;
     music2.volume = 0;
     music2.play().catch(() => {});
     fadeAudio(music2, 0.6, 800);
 }
 
 function stopMusic1() {
+    if (!music1Loaded) return;
     fadeAudio(music1, 0, 1200, () => {
         music1.pause();
         music1.currentTime = 0;
@@ -305,7 +310,7 @@ function showCelebration() {
     });
 }
 
-async function loadResource(url) {
+async function loadResource(url, onProgress) {
     const response = await fetch(url);
     if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
     const contentLength = +response.headers.get('Content-Length');
@@ -318,9 +323,8 @@ async function loadResource(url) {
         if (done) break;
         chunks.push(value);
         receivedLength += value.length;
-        if (contentLength > 0) {
-            const percent = Math.round((receivedLength / contentLength) * 100);
-            updateProgress(percent);
+        if (contentLength > 0 && onProgress) {
+            onProgress(Math.round((receivedLength / contentLength) * 100));
         }
     }
 
@@ -328,19 +332,50 @@ async function loadResource(url) {
     return URL.createObjectURL(blob);
 }
 
-function updateProgress(percent) {
-    progressBar.style.width = percent + '%';
-    progressText.textContent = '%' + percent;
-}
-
 async function preloadAll() {
+    let totalProgress = 0;
+    const totalFiles = 2;
+    let completedFiles = 0;
+
+    const updateGlobalProgress = (filePercent) => {
+        const overall = Math.round((totalProgress + filePercent) / totalFiles);
+        progressBar.style.width = overall + '%';
+        progressText.textContent = '%' + overall;
+    };
+
     try {
-        const [music1Url, music2Url] = await Promise.all([
-            loadResource('./files/music/1.mp3'),
-            loadResource('./files/music/2.mp3')
-        ]);
-        music1.src = music1Url;
-        music2.src = music2Url;
+        const url1 = await loadResource('./files/music/1.mp3', (percent) => {
+            updateGlobalProgress(percent);
+        });
+        music1.src = url1;
+        music1Loaded = true;
+        completedFiles++;
+        totalProgress += 100;
+    } catch (e) {
+        console.warn('1.mp3 yüklenemedi, fallback kullanılıyor.', e);
+        music1.src = './files/music/1.mp3';
+        music1Loaded = true;
+        completedFiles++;
+        totalProgress += 100;
+    }
+
+    try {
+        const url2 = await loadResource('./files/music/2.mp3', (percent) => {
+            updateGlobalProgress(percent);
+        });
+        music2.src = url2;
+        music2Loaded = true;
+        completedFiles++;
+        totalProgress += 100;
+    } catch (e) {
+        console.warn('2.mp3 yüklenemedi, fallback kullanılıyor.', e);
+        music2.src = './files/music/2.mp3';
+        music2Loaded = true;
+        completedFiles++;
+        totalProgress += 100;
+    }
+
+    if (completedFiles === totalFiles) {
         loadingScreen.classList.add('hidden');
         createShapes();
         if (!document.fullscreenElement) {
@@ -348,11 +383,6 @@ async function preloadAll() {
         } else {
             startExperience();
         }
-    } catch (err) {
-        console.error('Yükleme hatası:', err);
-        loadingScreen.classList.add('hidden');
-        createShapes();
-        showFullscreenBtn();
     }
 }
 
