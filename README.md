@@ -1,2 +1,2 @@
-# do-um-g-n-n-kutlu-olsun-
+# dogum-gunun-kutlu-olsun
 Şevval için hazırladığım özel doğum günüü mesajı
