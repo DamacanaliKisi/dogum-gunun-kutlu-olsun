@@ -7,6 +7,16 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
+    <div id="loading-screen">
+        <div class="loading-content">
+            <p class="loading-text">yükleniyor...</p>
+            <div class="progress-bar-container">
+                <div class="progress-bar" id="progress-bar"></div>
+            </div>
+            <p class="progress-text" id="progress-text">%0</p>
+        </div>
+    </div>
+
     <div id="bg-shapes"></div>
 
     <button id="fullscreen-btn" aria-label="Tam ekran yap">
@@ -60,8 +70,8 @@
         </div>
     </div>
 
-    <audio id="music1" src="./files/music/1.mp3" preload="auto"></audio>
-    <audio id="music2" src="./files/music/2.mp3" preload="auto"></audio>
+    <audio id="music1" preload="auto"></audio>
+    <audio id="music2" preload="auto"></audio>
 
     <script src="script.js"></script>
 </body>
